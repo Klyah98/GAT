@@ -8,9 +8,10 @@ class Trainer:
     
     node_dim = 0
     
-    def __init__(self, model, optimizer, data, tboard_log_dir=''):
+    def __init__(self, model, optimizer, data, tboard_log_dir='', return_logs=False):
         self.model = model
         self.optimizer = optimizer
+        self.return_logs = return_logs
         self.node_features, self.adjacency_matrix, self.node_labels = data[0], data[1], data[2]
         self.train_indices, self.val_indices, self.test_indices = data[3], data[4], data[5]
         
@@ -29,6 +30,13 @@ class Trainer:
         model = self.model
         optimizer = self.optimizer
         
+        logs = {
+            'train_loss': [],
+            'val_loss': [],
+            'train_acc': [],
+            'val_acc': []
+        }
+
         train_labels = self.node_labels.index_select(self.node_dim, self.train_indices)
         val_labels = self.node_labels.index_select(self.node_dim, self.val_indices)
         test_labels = self.node_labels.index_select(self.node_dim, self.test_indices)
@@ -48,11 +56,13 @@ class Trainer:
             print('----------------------')
             
             train_class_predictions = torch.argmax(train_output, dim=-1)
-            accuracy = torch.sum(torch.eq(train_class_predictions, train_labels).long()).item() / len(train_labels)
-            print('train', accuracy)
+            train_accuracy = torch.sum(torch.eq(train_class_predictions, train_labels).long()).item() / len(train_labels)
+            print('train', train_accuracy)
             
             model.eval()
-            val_output = model.forward(graph_data)[0].index_select(self.node_dim, self.val_indices)
+            with torch.no_grad():
+                val_output = model.forward(graph_data)[0].index_select(self.node_dim, self.val_indices)
+            val_loss = cross_entropy_loss(val_output, val_labels)
             val_class_predictions = torch.argmax(val_output, dim=-1)
             val_accuracy = torch.sum(torch.eq(val_class_predictions, val_labels).long()).item() / len(val_labels)
             val_loss = cross_entropy_loss(val_output, val_labels)
@@ -63,7 +73,16 @@ class Trainer:
                 self.log_writer.add_scalar('val/', val_loss, global_step=self.global_step)
                 self.global_step += 1
             
+            if self.return_logs:
+                logs['train_loss'].append(train_loss)
+                logs['val_loss'].append(val_loss)
+                logs['train_acc'].append(train_accuracy)
+                logs['val_acc'].append(val_accuracy)
+            
         test_output = model.forward(graph_data)[0].index_select(self.node_dim, self.test_indices)
         class_predictions = torch.argmax(test_output, dim=-1)
         test_accuracy = torch.sum(torch.eq(class_predictions, test_labels).long()).item() / len(test_labels)
         print('test', test_accuracy)
+
+        if self.return_logs:
+            return logs
