@@ -113,8 +113,6 @@ class GatLayer(BaseGatLayer):
             connectivity_mask.shape,
         )
         assert connectivity_mask.shape == (num_of_nodes, num_of_nodes), assert_string
-        
-#         in_nodes_features = self.dropout(in_nodes_features)
         nodes_features_proj = self.linear_proj(in_nodes_features).view(-1, self.num_heads, self.num_out_features)
         nodes_features_proj = self.dropout(nodes_features_proj)
         nodes_features_proj = nn.LeakyReLU(0.1)(nodes_features_proj)

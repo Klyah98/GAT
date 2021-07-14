@@ -37,10 +37,10 @@ def get_feature_vectors(pubmed_path):
     labels = dataset['label'].values
     dataset = dataset.drop(columns=['paper_id', 'label']).values
 
-    return dataset, labels
+    return dataset, labels, paper_id_map
 
 
-def get_adjacency_matrix(pubmed_path):    
+def get_adjacency_matrix(pubmed_path, paper_id_map):    
     adjacency_matrix = np.zeros(shape=(19717, 19717)) - 100000
 
     with open(pubmed_path + 'Pubmed-Diabetes.DIRECTED.cites.tab', 'rb') as f:
@@ -54,15 +54,15 @@ def get_adjacency_matrix(pubmed_path):
 
 
 def load_pubmed(pubmed_path, device='cpu'):
-    node_features, node_labels = get_feature_vectors(pubmed_path)
-    adjacency_matrix = get_adjacency_matrix(pubmed_path)
+    node_features, node_labels, paper_id_map = get_feature_vectors(pubmed_path)
+    adjacency_matrix = get_adjacency_matrix(pubmed_path, paper_id_map)
     
     
-    adjacency_matrix = torch.tensor(adjacency_matrix, dtype=torch.long, device=device)
+    adjacency_matrix = torch.tensor(adjacency_matrix, device=device).float()
     node_labels = torch.tensor(node_labels, dtype=torch.long, device=device)
-    node_features = torch.tensor(node_features, device=device)
+    node_features = torch.tensor(node_features, device=device).float()
     
-    train_indices = torch.arange(TRAIN_RANGE[0], TRAIN_RANGE[1], dtype=torch.long, device=device)
-    val_indices = torch.arange(VAL_RANGE[0], VAL_RANGE[1], dtype=torch.long, device=device)
-    test_indices = torch.arange(TEST_RANGE[0], TEST_RANGE[1], dtype=torch.long, device=device)
+    train_indices = torch.arange(TRAIN_RANGE[0], TRAIN_RANGE[1], device=device)
+    val_indices = torch.arange(VAL_RANGE[0], VAL_RANGE[1], device=device)
+    test_indices = torch.arange(TEST_RANGE[0], TEST_RANGE[1], device=device)
     return node_features, adjacency_matrix, node_labels, train_indices, val_indices, test_indices

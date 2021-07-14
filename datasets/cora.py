@@ -47,7 +47,7 @@ def load_cora(cora_path, device='cpu'):
     node_labels = torch.tensor(node_labels, dtype=torch.long, device=device)
     node_features = torch.tensor(node_features.todense(), device=device)
     
-    train_indices = torch.arange(TRAIN_RANGE[0], TRAIN_RANGE[1], dtype=torch.long, device=device)
-    val_indices = torch.arange(VAL_RANGE[0], VAL_RANGE[1], dtype=torch.long, device=device)
-    test_indices = torch.arange(TEST_RANGE[0], TEST_RANGE[1], dtype=torch.long, device=device)
+    train_indices = torch.arange(TRAIN_RANGE[0], TRAIN_RANGE[1], device=device)
+    val_indices = torch.arange(VAL_RANGE[0], VAL_RANGE[1], device=device)
+    test_indices = torch.arange(TEST_RANGE[0], TEST_RANGE[1], device=device)
     return node_features, adjacency_matrix, node_labels, train_indices, val_indices, test_indices
