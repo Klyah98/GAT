@@ -13,7 +13,7 @@ NUM_CLASSES = 3
 
 def get_feature_vectors(pubmed_path):
     with open(pubmed_path + 'Pubmed-Diabetes.NODE.paper.tab', 'rb') as f:
-        for i, line in tqdm(enumerate(f.readlines())):
+        for i, line in enumerate(tqdm(f.readlines())):
             if i == 0:
                 continue
             elif i == 1:
